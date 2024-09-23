@@ -61,35 +61,31 @@ service /api on new http:Listener(3000) {
         return reviewList;
     }
 
-    //Resource function to Retrieve all programmes that belong to the same faculty
-    resource function get faculty_programme/[string faculty]() returns Programmes[]|error {
+    //Resource funtion to Retrieve a list of all programmes within the Programme Unit(faculty, department)
+    resource function get get_programmes_in_unit/[string unit]() returns Programmes[]|error {
         stream<Programmes, sql:Error?> programmeStream = db->query(`
             SELECT *
-            FROM Programmes p
-            WHERE p.faculty = ${faculty}
+            FROM Programmes
+            WHERE faculty = ${unit} OR department = ${unit}
         `);
 
-        Programmes[] programmeList = [];
+        Programmes[] programmesList = [];
         check from Programmes programme in programmeStream
             do {
-                programmeList.push(programme);
+                programmesList.push(programme);
             };
 
-        // If no results are found, return an error
-        // if reviewList.length() == 0 {
-        //     return error("No Programme is Due");
-        // }
-
-        return programmeList;
+        return programmesList;
     }
+
+}
 
 // Resource function to retrieve programme details by programme_code
     resource function get ./[string programme_code]() returns json|error {
         stream<Programmes, sql:Error?> programmeStream = db->query(`
             SELECT * 
             FROM Programmes
-            WHERE programme_code = ?
-        `, programme_code);
+            WHERE programme_code = ?`, programme_code);
 
         Programmes[] programmeList = [];
         
